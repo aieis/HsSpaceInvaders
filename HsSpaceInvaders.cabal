@@ -19,7 +19,7 @@ maintainer:         aieisalem17@gmail.com
 -- A copyright notice.
 -- copyright:
 -- category:
-extra-source-files: CHANGELOG.md
+extra-source-files: CHANGELOG.md app/Engine/IO.hs
 
 executable HsSpaceInvaders
     main-is:          Main.hs
@@ -30,5 +30,6 @@ executable HsSpaceInvaders
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:    base ^>=4.16.4.0
+                    , clock
     hs-source-dirs:   app
     default-language: Haskell2010

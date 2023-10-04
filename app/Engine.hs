@@ -6,6 +6,7 @@ module Engine
   , canvasToTex
   , makeCanvas
   , Physics (..)
+  , gameTick
   )
 where
 
@@ -64,8 +65,10 @@ canvasToTexHelper (b:bs, h, w) = "[" ++ canvasRow b ++ "]\n" ++ canvasToTexHelpe
 canvasRow (b:bs) = b :  canvasRow bs
 canvasRow _ = ""
 
---gameTick :: [Entities] -> Canvas -> ([Entities], Canvas)
---gameTick es cs =
+gameTick :: [Entity] -> [Entity]
+gameTick (e:es) = tickEntity e : gameTick es
+gameTick [] = []
+
 tickEntity :: Entity -> Entity
 tickEntity (e, (y, x), (by, bx), p) = ne where
   (ay, ax) = totalAccel (forces p) (mass p)
@@ -88,5 +91,3 @@ totalAccel (f:fs) m = (ay, ax) where
   ax = (fx / m) + nax
 
 totalAccell _ _ = (0, 0)
-               
-               

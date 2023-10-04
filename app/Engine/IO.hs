@@ -28,9 +28,12 @@ findKeyName inkey = case inkey of
       _        -> Skip
   
 getKey :: IO [Char]
-getKey = reverse <$> getKey' ""
-  where getKey' chars = do
+getKey = do
+  avail <- hReady stdin
+  reverse <$> getKey' avail ""
+  where getKey' True chars = do
           char <- getChar
           more <- hReady stdin
-          (if more then getKey' else return) (char:chars)
-          
+          getKey' more (char:chars)
+        getKey' False chars = return chars
+  
