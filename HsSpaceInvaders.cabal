@@ -33,3 +33,5 @@ executable HsSpaceInvaders
                     , clock
     hs-source-dirs:   app
     default-language: Haskell2010
+    other-modules: Engine
+                 , Engine.IO

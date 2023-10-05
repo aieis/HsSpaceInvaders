@@ -20,9 +20,9 @@ import Control.Concurrent (threadDelay)
 main :: IO ()
 main = do
   initIO
-  let canvas = makeCanvas 20 80
+  let canvas = makeCanvas 50 80
   let et = makeEnemy 2 4
-  let ss = makeSpaceShip 12 37
+  let ss = makeSpaceShip 45 37
   start <- getTime Monotonic
   controller start [et] ss canvas
 
@@ -36,11 +36,11 @@ controller start entities spaceship canvas = do
   let (_, h, w) = canvas
   let (nss : bullets) = actEntity spaceship (h, w) act
   let nents = gameTick (bullets ++ entities)
-  let ncanvas = drawEntities (nss : nents) canvas
 
+  let ncanvas = drawEntities (nss : nents) canvas
   end <- getTime Monotonic
   let diff = fromIntegral (toNanoSecs  (diffTimeSpec end start) `div` 1000)
-  (if diff > 33000 then idIO else threadDelay ) diff
+  (if diff > 100000 then idIO else threadDelay ) diff
   
   putStr $ canvasToTex ncanvas
   
@@ -63,7 +63,7 @@ makeEnemy y x =
       [z, o, z],
       [o, o, o],
       [z, o, z]
-   ], (3, 3), (y, x), Physics {mass = 5, velocity = (0, 0), forces = [((1, 0), -1)]})
+   ], (3, 3), (y, x), Physics {mass = 5, velocity = (0, 0), forces = []})
 
 makeSpaceShip :: Int -> Int -> Entity
 makeSpaceShip y x =
@@ -73,11 +73,11 @@ makeSpaceShip y x =
       [z, z, o, z, z],
       [z, o, o, o, z],
       [o, o, o, o, o]
-     ], (3, 5), (y, x), Physics {mass = 5, velocity = (0, 0), forces = [((1, 0), -1)]})
+     ], (3, 5), (y, x), Physics {mass = 5, velocity = (0, 0), forces = []})
   
 makeBullet :: Entity -> Entity
 makeBullet (_, (h, w), (y,x), p) =   let o = 'o' in
     ([[o],
       [o]
-     ], (2,1), (y - 2, x + (w `div` 2)), Physics {mass = 2, velocity = (-10, 0), forces = []})
+     ], (2,1), (y - 2, x + (w `div` 2)), Physics {mass = 2, velocity = (-6, 0), forces = [((1, 0), -1)]})
   

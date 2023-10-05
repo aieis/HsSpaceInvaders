@@ -70,7 +70,7 @@ gameTick (e:es) = tickEntity e : gameTick es
 gameTick [] = []
 
 tickEntity :: Entity -> Entity
-tickEntity (e, (y, x), (by, bx), p) = ne where
+tickEntity (e, dims, (y, x), p) = ne where
   (ay, ax) = totalAccel (forces p) (mass p)
   (vy, vx) = velocity p
   ny = round (fromIntegral y + vy + 0.5 * vy * ay)
@@ -81,13 +81,13 @@ tickEntity (e, (y, x), (by, bx), p) = ne where
          forces = [(fst f, max ((snd f) - 1) (-1)) | f <- forces p, (snd f) /= 0 ]
        }
 
-  ne = (e, (ny, nx), (by, bx), np)
+  ne = (e, dims, (ny, nx), np)
 
 totalAccel :: [Force] -> Float -> (Float, Float)
 totalAccel (f:fs) m = (ay, ax) where
   (nay, nax) = totalAccel fs m
-  ((fx, fy), _) = f
+  ((fy, fx), _) = f
   ay = (fy / m) + nay
   ax = (fx / m) + nax
 
-totalAccell _ _ = (0, 0)
+totalAccel [] _ = (0, 0)
