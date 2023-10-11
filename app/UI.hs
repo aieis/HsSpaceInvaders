@@ -54,14 +54,28 @@ theMap = attrMap V.defAttr
   
 
 handleEvent :: BrickEvent n e -> EventM n (Game ()) ()
-handleEvent (T.VtyEvent e) =
-  let act k ss = actEntity ss (20, 40) k
-      ind0 k = k !! 0
-  in case e of
-       V.EvKey (V.KChar 'w') [] -> ss %= ind0 . (act Up)
-       V.EvKey (V.KChar 'a') [] -> ss %= ind0 . (act Left)
-       V.EvKey (V.KChar 's') [] -> ss %= ind0 . (act Down)
-       V.EvKey (V.KChar 'd') [] -> ss %= ind0 . (act Right)
+handleEvent (T.VtyEvent e) = do
+  (_, bh, bw) <- use canvas
+  nss <- use ss
+  let act k ss = actEntity ss (bh, bw) k
+  let entAct k ents = ents ++ tail (actEntity nss (bh, bw) k)
+  let ind i es = es !! i
+  case e of
+       V.EvKey (V.KChar 'w') [] -> do
+         ss %= (ind 0) . (act Up)
+         entities %= entAct Up
+       V.EvKey (V.KChar 'a') [] -> do
+         ss %= (ind 0) . (act Left)
+         entities %= entAct Left
+       V.EvKey (V.KChar 's') [] -> do
+         ss %= (ind 0) . (act Down)
+         entities %= entAct Down
+       V.EvKey (V.KChar 'd') [] -> do
+         ss %= (ind 0) . (act Right)
+         entities %= entAct Right
+       V.EvKey (V.KChar ' ') [] -> do
+         ss %= (ind 0) . (act Space)
+         entities %= entAct Space
        _ -> return ()     
 
 handleEvent _ = return ()
