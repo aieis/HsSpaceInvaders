@@ -53,7 +53,7 @@ theMap = attrMap V.defAttr
   []
   
 
-handleEvent :: BrickEvent n e -> EventM n (Game ()) ()
+handleEvent :: BrickEvent n Tick -> EventM n (Game ()) ()
 handleEvent (T.VtyEvent e) = do
   (_, bh, bw) <- use canvas
   nss <- use ss
@@ -76,7 +76,11 @@ handleEvent (T.VtyEvent e) = do
        V.EvKey (V.KChar ' ') [] -> do
          ss %= (ind 0) . (act Space)
          entities %= entAct Space
-       _ -> return ()     
+       V.EvKey (V.KChar 'q') [] -> halt
+       _ -> return ()
+
+handleEvent (AppEvent Tick) = do
+  entities %= step
 
 handleEvent _ = return ()
 

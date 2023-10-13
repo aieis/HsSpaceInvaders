@@ -27,9 +27,10 @@ mainOld = do
   controller start [et] ss canvas
 
 createGame :: Game ()
-createGame = Game { _canvas = makeCanvas 50 80
+createGame = Game { _canvas = makeCanvas 30 100
                   , _entities = [makeEnemy 2 4]
-                  , _ss = makeSpaceShip 4 5
+                  , _ss = makeSpaceShip 20 40
+                  , _end = False
                   }
 
 idIO :: Int -> IO ()
@@ -52,6 +53,9 @@ controller start entities spaceship canvas = do
   putStr $ canvasToTex ncanvas
   
   controller end nents nss canvas
+
+step :: [Entity] -> [Entity]
+step = gameTick
 
 actEntity :: Entity -> (Int, Int) -> KeyName -> [Entity]
 actEntity (ed, dims, (y, x), p) _ Left = [(ed, dims, (y, max 0 (x-1)), p)]
@@ -93,5 +97,6 @@ data Game n = Game
     _canvas :: Canvas
   , _entities :: [Entity]
   , _ss :: Entity
+  , _end :: Bool
   }
 
