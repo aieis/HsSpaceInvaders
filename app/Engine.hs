@@ -2,6 +2,7 @@ module Engine
   ( KeyName (Up, Down, Right, Left, Space, Skip)
   , Canvas
   , Entity
+  , entityCoord
   , drawEntities
   , canvasToTex
   , makeCanvas
@@ -19,6 +20,8 @@ data Physics = Physics
 data KeyName = Left | Right | Up | Down | Space | Skip deriving (Enum)
 type Canvas = ([[Char]], Int, Int)
 type Entity = ([[Char]], (Int,Int), (Int, Int), Physics)
+
+entityCoord (_, _, coord, _) = coord
 
 drawEntities :: [Entity] -> Canvas -> Canvas
 drawEntities (e:es) canvas = drawEntities es $ drawEntityHelper canvas e

@@ -51,7 +51,6 @@ app = App { appDraw = drawUI
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   []
-  
 
 handleEvent :: BrickEvent n Tick -> EventM n (Game ()) ()
 handleEvent (T.VtyEvent e) = do
@@ -80,7 +79,8 @@ handleEvent (T.VtyEvent e) = do
        _ -> return ()
 
 handleEvent (AppEvent Tick) = do
-  entities %= step
+  (_, bh, bw) <- use canvas
+  entities %= step (bh, bw)
 
 handleEvent _ = return ()
 

@@ -1,6 +1,7 @@
 module SI where
 import Engine (KeyName (..)
               , Entity
+              , entityCoord
               , Canvas
               , canvasToTex
               , makeCanvas
@@ -20,7 +21,7 @@ import Control.Concurrent (threadDelay)
 mainOld :: IO ()
 mainOld = do
   initIO
-  let canvas = makeCanvas 50 80
+  let canvas = makeCanvas 50 50
   let et = makeEnemy 2 4
   let ss = makeSpaceShip 45 37
   start <- getTime Monotonic
@@ -28,7 +29,7 @@ mainOld = do
 
 createGame :: Game ()
 createGame = Game { _canvas = makeCanvas 30 100
-                  , _entities = [makeEnemy 2 4]
+                  , _entities = []
                   , _ss = makeSpaceShip 20 40
                   , _end = False
                   }
@@ -55,6 +56,15 @@ controller start entities spaceship canvas = do
   controller end nents nss canvas
 
 
+isEnemy :: Entity -> Bool
+isEnemy (_, (2, 1), _, _) = False
+isEnemy (_, (3, 5), _, _) = False
+isEnemy _ = True
+
+countEnemies :: [Entity] -> Int
+countEnemies (e : es) = if isEnemy e then 1 + countEnemies es else countEnemies es
+countEnemies [] = 0
+
 collide' :: Entity -> Entity -> Bool
 collide' (_, (h1, w1), (y1, x1), _) (_, (h2, w2), (y2, x2), _) = (x2 > x1 + w2) || (y2 > y1 + h1)
 
@@ -72,12 +82,22 @@ collision ei@(e1 : es) = nes
     n = length ei
     nes = if n == length nes' then e1 : collision (take (n - 1) nes') else collision nes'
 
-step :: [Entity] -> [Entity]
-step es = nes
-  where
-    nes' = gameTick es
-    nes = collision nes'
 
+inbound :: (Int, Int) -> [Entity] -> [Entity]
+inbound (bh, bw) es = [e | e <- es, fst (entityCoord e) < bh ]
+
+makeWave (bh, bw) = take 1 [makeEnemy ((i `div` bw) * 4 ) (i `mod` bw) | i <- [0, 4..]]
+
+step :: (Int, Int) -> [Entity] -> [Entity]
+step bdims es = nes
+  where
+    inb = inbound bdims es
+    nes' = gameTick inb
+    nes'' = collision nes'
+    nwave = if countEnemies nes'' == 0 then makeWave bdims else []
+
+    nes = nes'' ++ nwave
+    
 
 actEntity :: Entity -> (Int, Int) -> KeyName -> [Entity]
 actEntity (ed, dims, (y, x), p) _ Left = [(ed, dims, (y, max 0 (x-1)), p)]
