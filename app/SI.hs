@@ -11,7 +11,7 @@ import Engine (KeyName (..)
 import Engine.IO (
   initIO
   , getKeyPressed)
-       
+
 import Control.Monad (when, unless)
 import Prelude hiding (Left,Right)
 import System.Clock (Clock(Monotonic), TimeSpec, getTime, toNanoSecs, diffTimeSpec)
@@ -46,16 +46,38 @@ controller start entities spaceship canvas = do
   let nents = gameTick (bullets ++ entities)
   let ncanvas = drawEntities (nss : nents) canvas
   let tex = canvasToTex ncanvas
-  
+
   end <- getTime Monotonic
   let diff = fromIntegral (toNanoSecs  (diffTimeSpec end start) `div` 1000)
   (if diff > 100000 then idIO else threadDelay ) diff
   putStr $ canvasToTex ncanvas
-  
+
   controller end nents nss canvas
 
+
+collide' :: Entity -> Entity -> Bool
+collide' (_, (h1, w1), (y1, x1), _) (_, (h2, w2), (y2, x2), _) = (x2 > x1 + w2) || (y2 > y1 + h1)
+
+collide :: Entity -> Entity -> Bool
+collide e1 e2 = not (collide' e1 e2 || collide' e2 e1)
+
+collision' (e1 : e2 : es) = if (collide e1 e2) then es else e2 : collision (e1 : es)
+collision' es = es
+
+collision :: [Entity] -> [Entity]
+collision [] = []
+collision ei@(e1 : es) = nes
+  where
+    nes' = collision' ei
+    n = length ei
+    nes = if n == length nes' then e1 : collision (take (n - 1) nes') else collision nes'
+
 step :: [Entity] -> [Entity]
-step = gameTick
+step es = nes
+  where
+    nes' = gameTick es
+    nes = collision nes'
+
 
 actEntity :: Entity -> (Int, Int) -> KeyName -> [Entity]
 actEntity (ed, dims, (y, x), p) _ Left = [(ed, dims, (y, max 0 (x-1)), p)]
@@ -85,7 +107,7 @@ makeSpaceShip y x =
       [z, o, o, o, z],
       [o, o, o, o, o]
      ], (3, 5), (y, x), Physics {mass = 5, velocity = (0, 0), forces = []})
-  
+
 makeBullet :: Entity -> Entity
 makeBullet (_, (h, w), (y,x), p) =   let o = 'o' in
     ([[o],
@@ -99,4 +121,3 @@ data Game n = Game
   , _ss :: Entity
   , _end :: Bool
   }
-
