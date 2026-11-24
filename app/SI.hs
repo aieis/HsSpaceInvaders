@@ -26,34 +26,31 @@ countEnemies (e : es) = if isEnemy e then 1 + countEnemies es else countEnemies 
 countEnemies [] = 0
 
 collide' :: Entity -> Entity -> Bool
-collide' (_, (h1, w1), (y1, x1), _) (_, (h2, w2), (y2, x2), _) = (x2 > x1 + w2) || (y2 > y1 + h1)
+collide' (_, (h1, w1), (y1, x1), _) (_, _, (y2, x2), _) = (x2 >= x1 + w1) || (y2 >= y1 + h1)
 
 collide :: Entity -> Entity -> Bool
 collide e1 e2 = not (collide' e1 e2 || collide' e2 e1)
 
-collision' (e1 : e2 : es) = if (collide e1 e2) then es else e2 : collision (e1 : es)
-collision' es = es
-
 collision :: [Entity] -> [Entity]
 collision [] = []
-collision ei@(e1 : es) = nes
+collision (e1 : es) = nes
   where
-    nes' = collision' ei
-    n = length ei
-    nes = if n == length nes' then e1 : collision (take (n - 1) nes') else collision nes'
+    hit = any (collide e1) es
+    rest = filter (not . collide e1) es
+    nes = if hit then collision rest else e1 : collision es
 
 
 inbound :: (Int, Int) -> [Entity] -> [Entity]
 inbound (bh, bw) es = [e | e <- es, fst (entityCoord e) < bh ]
 
-makeWave (bh, bw) = take 1 [makeEnemy ((i `div` bw) * 4 ) (i `mod` bw) | i <- [0, 4..]]
+makeWave (bh, bw) = take 20 [makeEnemy ((i `div` bw) * 4 ) (i `mod` bw) | i <- [0, 4..]]
 
-step :: (Int, Int) -> [Entity] -> [Entity]
-step bdims es = nes
+step :: (Int, Int) -> Entity -> [Entity] -> [Entity]
+step bdims ss es = nes
   where
     inb = inbound bdims es
     nes' = gameTick inb
-    nes'' = collision nes'
+    nes'' = [e | e <- collision nes', not (collide ss e)]
     nwave = if countEnemies nes'' == 0 then makeWave bdims else []
 
     nes = nes'' ++ nwave
@@ -92,7 +89,7 @@ makeBullet :: Entity -> Entity
 makeBullet (_, (h, w), (y,x), p) =   let o = 'o' in
     ([[o],
       [o]
-     ], (2,1), (y - 2, x + (w `div` 2)), Physics {mass = 2, velocity = (-6, 0), forces = [((1, 0), -1)]})
+     ], (2,1), (y - 2, x + (w `div` 2)), Physics {mass = 2, velocity = (-3, 0), forces = [((0.2, 0), -1)]})
 
 data Game n = Game
   {

@@ -80,7 +80,8 @@ handleEvent (T.VtyEvent e) = do
 
 handleEvent (AppEvent Tick) = do
   (_, bh, bw) <- use canvas
-  entities %= step (bh, bw)
+  nss <- use ss
+  entities %= step (bh, bw) nss
 
 handleEvent _ = return ()
 
