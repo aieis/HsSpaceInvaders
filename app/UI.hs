@@ -86,10 +86,12 @@ handleEvent (AppEvent Tick) = do
     (_, bh, bw) <- use canvas
     nss <- use ss
     t <- use tick
-    (nes, hits, kills) <- step (bh, bw) t nss <$> use entities
+    (nes, hits, killed) <- step (bh, bw) t nss <$> use entities
     entities .= nes
     tick %= (+ 1)
-    score %= (+ 10 * kills)
+    score %= (+ 10 * length killed)
+    booms %= \bs -> [(n + 1, c) | (n, c) <- bs, n < 5] ++ [(0, c) | c <- killed]
+    flash %= \f -> if hits > 0 then 6 else max 0 (f - 1)
     hp %= subtract hits
     h <- use hp
     end .= (h <= 0 || landed bh nes)
@@ -99,7 +101,9 @@ handleEvent _ = return ()
 
 drawUI :: (Game ()) -> [Widget Name]
 drawUI g = [if _end g then C.center (str over) else str tex] where
-  ncanvas = drawEntities (_ss g : _entities g) (_canvas g)
+  ship = [_ss g | even (_flash g)]
+  ents = map (animate (_tick g)) (_entities g)
+  ncanvas = drawEntities (ship ++ ents ++ map makeBoom (_booms g)) (_canvas g)
   status = "HP " ++ show (_hp g) ++ "   SCORE " ++ show (_score g)
   tex = canvasToTex ncanvas ++ status
   over = "GAME OVER\n\nSCORE " ++ show (_score g) ++ "\n\nr: restart  q: quit"

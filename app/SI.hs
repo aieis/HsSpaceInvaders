@@ -18,6 +18,8 @@ createGame = Game { _canvas = makeCanvas 30 100
                   , _hp = 3
                   , _score = 0
                   , _tick = 0
+                  , _booms = []
+                  , _flash = 0
                   }
 
 isEnemy :: Entity -> Bool
@@ -35,13 +37,13 @@ collide' (_, (h1, w1), (y1, x1), _) (_, _, (y2, x2), _) = (x2 >= x1 + w1) || (y2
 collide :: Entity -> Entity -> Bool
 collide e1 e2 = not (collide' e1 e2 || collide' e2 e1)
 
-collision :: [Entity] -> [Entity]
-collision [] = []
+collision :: [Entity] -> ([Entity], [Entity])
+collision [] = ([], [])
 collision (e1 : es) = nes
   where
-    hit = any (collide e1) es
-    rest = filter (not . collide e1) es
-    nes = if hit then collision rest else e1 : collision es
+    (hits, rest) = partition (collide e1) es
+    (alive, dead) = collision rest
+    nes = if null hits then (e1 : alive, dead) else (alive, e1 : hits ++ dead)
 
 
 inbound :: (Int, Int) -> [Entity] -> [Entity]
@@ -66,14 +68,14 @@ fire t es = [makeBomb (enemies !! ((t `div` 8 * 37) `mod` length enemies)) | t `
 landed :: Int -> [Entity] -> Bool
 landed bh es = any (\(_, (h, _), (y, _), _) -> y + h > bh) (filter isEnemy es)
 
-step :: (Int, Int) -> Int -> Entity -> [Entity] -> ([Entity], Int, Int)
-step bdims t ss es = (nes, length hits, kills)
+step :: (Int, Int) -> Int -> Entity -> [Entity] -> ([Entity], Int, [(Int, Int)])
+step bdims t ss es = (nes, length hits, killed)
   where
     inb = inbound bdims es
     moved = turn bdims (gameTick inb)
     nes' = moved ++ fire t moved
-    survivors = collision nes'
-    kills = countEnemies nes' - countEnemies survivors
+    (survivors, dead) = collision nes'
+    killed = map entityCoord (filter isEnemy dead)
     (hits, nes'') = partition (collide ss) survivors
     nwave = if countEnemies nes'' == 0 then makeWave bdims else []
 
@@ -121,6 +123,16 @@ makeBomb (_, (h, w), (y,x), p) =   let o = '|' in
       [o]
      ], (2,1), (y + h, x + (w `div` 2)), Physics {mass = 2, velocity = (1, 0), forces = []})
 
+animate :: Int -> Entity -> Entity
+animate t e@(_, dims, coord, p)
+  | isEnemy e && odd (t `div` 5) = (["o o", " o ", "o o"], dims, coord, p)
+  | otherwise = e
+
+makeBoom :: (Int, (Int, Int)) -> Entity
+makeBoom (n, coord) = (frames !! (n `div` 2), (3, 3), coord, Physics {mass = 1, velocity = (0, 0), forces = []})
+  where
+    frames = [["\\|/", "-*-", "/|\\"], [" * ", "* *", " * "], [" . ", ". .", " . "]]
+
 data Game n = Game
   {
     _canvas :: Canvas
@@ -130,4 +142,6 @@ data Game n = Game
   , _hp :: Int
   , _score :: Int
   , _tick :: Int
+  , _booms :: [(Int, (Int, Int))]
+  , _flash :: Int
   }
