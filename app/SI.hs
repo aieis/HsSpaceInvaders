@@ -101,6 +101,16 @@ makeEnemy y x =
       [z, o, z]
    ], (3, 3), (y, x), Physics {mass = 5, velocity = (0, 1), forces = []})
 
+enemyAlt :: [[Char]]
+enemyAlt =
+  let o = 'o'
+      z = ' ' in
+  [
+      [o, z, o],
+      [z, o, z],
+      [o, z, o]
+   ]
+
 makeSpaceShip :: Int -> Int -> Entity
 makeSpaceShip y x =
   let o = 'o'
@@ -125,13 +135,38 @@ makeBomb (_, (h, w), (y,x), p) =   let o = '|' in
 
 animate :: Int -> Entity -> Entity
 animate t e@(_, dims, coord, p)
-  | isEnemy e && odd (t `div` 5) = (["o o", " o ", "o o"], dims, coord, p)
+  | isEnemy e && odd (t `div` 5) = (enemyAlt, dims, coord, p)
   | otherwise = e
 
 makeBoom :: (Int, (Int, Int)) -> Entity
-makeBoom (n, coord) = (frames !! (n `div` 2), (3, 3), coord, Physics {mass = 1, velocity = (0, 0), forces = []})
-  where
-    frames = [["\\|/", "-*-", "/|\\"], [" * ", "* *", " * "], [" . ", ". .", " . "]]
+makeBoom (n, coord) = (boomFrames !! (n `div` 2), (3, 3), coord, Physics {mass = 1, velocity = (0, 0), forces = []})
+
+boomFrames :: [[[Char]]]
+boomFrames =
+  let b = '\\'
+      f = '/'
+      v = '|'
+      h = '-'
+      s = '*'
+      d = '.'
+      z = ' ' in
+  [
+    [
+      [b, v, f],
+      [h, s, h],
+      [f, v, b]
+    ],
+    [
+      [z, s, z],
+      [s, z, s],
+      [z, s, z]
+    ],
+    [
+      [z, d, z],
+      [d, z, d],
+      [z, d, z]
+    ]
+  ]
 
 data Game n = Game
   {
