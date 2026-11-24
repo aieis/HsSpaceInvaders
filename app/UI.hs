@@ -29,7 +29,6 @@ import qualified Graphics.Vty as V
 import Graphics.Vty.CrossPlatform (mkVty)
 import qualified Brick.Types as T
 
-import Linear.V2 (V2(..))
 import Lens.Micro.Mtl
 import Lens.Micro.TH
 

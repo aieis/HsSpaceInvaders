@@ -30,12 +30,14 @@ drawEntities _ canvas = canvas
 removeColumn :: [[a]] -> ([a], [[a]])
 removeColumn [] = ([], [])
 removeColumn ((c:b):bs) = let (cs, rs) = removeColumn bs in (c:cs, b:rs)
+removeColumn bs = ([], bs)
 
   
 addColumn (c:cs) (r:rs) = (c:r) : addColumn cs rs
 addColumn _ rs = rs
 
 drawEntityHelper :: Canvas -> Entity -> Canvas
+drawEntityHelper canvas (_, _, (_, x), _) | x < 0 = canvas
 drawEntityHelper (canvas, h, w) (e, dims, (0, 0), p) = (drawEntityHere canvas e, h, w)
 drawEntityHelper (canvas, h, w) (e, dims, (0, x), p) = (addColumn bcol b2, h, w)
   where

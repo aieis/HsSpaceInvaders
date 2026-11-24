@@ -19,7 +19,7 @@ maintainer:         aieisalem17@gmail.com
 -- A copyright notice.
 -- copyright:
 -- category:
-extra-source-files: CHANGELOG.md app/Engine/IO.hs
+extra-source-files: CHANGELOG.md
 
 executable HsSpaceInvaders
     main-is:          Main.hs
@@ -30,21 +30,16 @@ executable HsSpaceInvaders
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:    base >=4.16 && <5
-                    , clock
                     , brick >=3
                     , vty >=6
                     , vty-crossplatform
-                    , lens
-                    , linear
                     , containers
-                    , extra
                     , microlens-th
-                    , microlens-mtl                    
-                    
+                    , microlens-mtl
+
     hs-source-dirs:   app
     ghc-options: -threaded -rtsopts -with-rtsopts=-N
     default-language: Haskell2010
     other-modules: Engine
-                 , Engine.IO
                  , UI
                  , SI

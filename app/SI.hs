@@ -3,29 +3,11 @@ import Engine (KeyName (..)
               , Entity
               , entityCoord
               , Canvas
-              , canvasToTex
               , makeCanvas
-              , drawEntities
               , Physics (..)
               , gameTick)
 
-import Engine.IO (
-  initIO
-  , getKeyPressed)
-
-import Control.Monad (when, unless)
 import Prelude hiding (Left,Right)
-import System.Clock (Clock(Monotonic), TimeSpec, getTime, toNanoSecs, diffTimeSpec)
-import Control.Concurrent (threadDelay)
-
-mainOld :: IO ()
-mainOld = do
-  initIO
-  let canvas = makeCanvas 50 50
-  let et = makeEnemy 2 4
-  let ss = makeSpaceShip 45 37
-  start <- getTime Monotonic
-  controller start [et] ss canvas
 
 createGame :: Game ()
 createGame = Game { _canvas = makeCanvas 30 100
@@ -33,28 +15,6 @@ createGame = Game { _canvas = makeCanvas 30 100
                   , _ss = makeSpaceShip 20 40
                   , _end = False
                   }
-
-idIO :: Int -> IO ()
-idIO _ = do
-  return ()
-
-controller :: TimeSpec -> [Entity] -> Entity -> Canvas -> IO()
-controller start entities spaceship canvas = do
-  act <- getKeyPressed
-  let (_, h, w) = canvas
-  let (nss : bullets) = actEntity spaceship (h, w) act
-
-  let nents = gameTick (bullets ++ entities)
-  let ncanvas = drawEntities (nss : nents) canvas
-  let tex = canvasToTex ncanvas
-
-  end <- getTime Monotonic
-  let diff = fromIntegral (toNanoSecs  (diffTimeSpec end start) `div` 1000)
-  (if diff > 100000 then idIO else threadDelay ) diff
-  putStr $ canvasToTex ncanvas
-
-  controller end nents nss canvas
-
 
 isEnemy :: Entity -> Bool
 isEnemy (_, (2, 1), _, _) = False
