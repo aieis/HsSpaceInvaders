@@ -85,19 +85,24 @@ handleEvent (AppEvent Tick) = do
   unless over $ do
     (_, bh, bw) <- use canvas
     nss <- use ss
-    (nes, hits) <- step (bh, bw) nss <$> use entities
+    t <- use tick
+    (nes, hits, kills) <- step (bh, bw) t nss <$> use entities
     entities .= nes
+    tick %= (+ 1)
+    score %= (+ 10 * kills)
     hp %= subtract hits
     h <- use hp
-    end .= (h <= 0)
+    end .= (h <= 0 || landed bh nes)
 
 handleEvent _ = return ()
 
 
 drawUI :: (Game ()) -> [Widget Name]
-drawUI g = [if _end g then C.center (str "GAME OVER\n\nr: restart  q: quit") else str tex] where
+drawUI g = [if _end g then C.center (str over) else str tex] where
   ncanvas = drawEntities (_ss g : _entities g) (_canvas g)
-  tex = canvasToTex ncanvas ++ "HP " ++ show (_hp g)
+  status = "HP " ++ show (_hp g) ++ "   SCORE " ++ show (_score g)
+  tex = canvasToTex ncanvas ++ status
+  over = "GAME OVER\n\nSCORE " ++ show (_score g) ++ "\n\nr: restart  q: quit"
   
 main :: IO ()
 main = do
