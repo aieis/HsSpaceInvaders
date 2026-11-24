@@ -26,6 +26,7 @@ import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Graphics.Vty as V
+import Graphics.Vty.CrossPlatform (mkVty)
 import qualified Brick.Types as T
 
 import Linear.V2 (V2(..))
@@ -97,6 +98,5 @@ main = do
     writeBChan chan Tick
     threadDelay 100000 -- decides how fast your game moves
   let g = createGame
-  let builder = V.mkVty V.defaultConfig
-  initialVty <- builder
-  void $ customMain initialVty builder (Just chan) app g
+  let builder = mkVty V.defaultConfig
+  void $ customMain (Just builder) (Just chan) app g
