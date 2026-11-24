@@ -3,7 +3,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 module UI where
 
-import Control.Monad (forever, void)
+import Control.Monad (forever, void, unless)
+import Control.Monad.State (put)
 import Control.Monad.IO.Class (liftIO)
 import Control.Concurrent (threadDelay, forkIO)
 import Data.Maybe (fromMaybe)
@@ -75,21 +76,28 @@ handleEvent (T.VtyEvent e) = do
        V.EvKey (V.KChar ' ') [] -> do
          ss %= (ind 0) . (act Space)
          entities %= entAct Space
+       V.EvKey (V.KChar 'r') [] -> put createGame
        V.EvKey (V.KChar 'q') [] -> halt
        _ -> return ()
 
 handleEvent (AppEvent Tick) = do
-  (_, bh, bw) <- use canvas
-  nss <- use ss
-  entities %= step (bh, bw) nss
+  over <- use end
+  unless over $ do
+    (_, bh, bw) <- use canvas
+    nss <- use ss
+    (nes, hits) <- step (bh, bw) nss <$> use entities
+    entities .= nes
+    hp %= subtract hits
+    h <- use hp
+    end .= (h <= 0)
 
 handleEvent _ = return ()
 
 
 drawUI :: (Game ()) -> [Widget Name]
-drawUI g = [str tex] where
+drawUI g = [if _end g then C.center (str "GAME OVER\n\nr: restart  q: quit") else str tex] where
   ncanvas = drawEntities (_ss g : _entities g) (_canvas g)
-  tex = canvasToTex ncanvas
+  tex = canvasToTex ncanvas ++ "HP " ++ show (_hp g)
   
 main :: IO ()
 main = do

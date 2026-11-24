@@ -8,12 +8,14 @@ import Engine (KeyName (..)
               , gameTick)
 
 import Prelude hiding (Left,Right)
+import Data.List (partition)
 
 createGame :: Game ()
 createGame = Game { _canvas = makeCanvas 30 100
                   , _entities = []
                   , _ss = makeSpaceShip 20 40
                   , _end = False
+                  , _hp = 3
                   }
 
 isEnemy :: Entity -> Bool
@@ -45,12 +47,12 @@ inbound (bh, bw) es = [e | e <- es, fst (entityCoord e) < bh ]
 
 makeWave (bh, bw) = take 20 [makeEnemy ((i `div` bw) * 4 ) (i `mod` bw) | i <- [0, 4..]]
 
-step :: (Int, Int) -> Entity -> [Entity] -> [Entity]
-step bdims ss es = nes
+step :: (Int, Int) -> Entity -> [Entity] -> ([Entity], Int)
+step bdims ss es = (nes, length hits)
   where
     inb = inbound bdims es
     nes' = gameTick inb
-    nes'' = [e | e <- collision nes', not (collide ss e)]
+    (hits, nes'') = partition (collide ss) (collision nes')
     nwave = if countEnemies nes'' == 0 then makeWave bdims else []
 
     nes = nes'' ++ nwave
@@ -97,4 +99,5 @@ data Game n = Game
   , _entities :: [Entity]
   , _ss :: Entity
   , _end :: Bool
+  , _hp :: Int
   }

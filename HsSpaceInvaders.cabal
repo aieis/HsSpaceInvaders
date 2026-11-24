@@ -34,6 +34,7 @@ executable HsSpaceInvaders
                     , vty >=6
                     , vty-crossplatform
                     , containers
+                    , mtl
                     , microlens-th
                     , microlens-mtl
 
