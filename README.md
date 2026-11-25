@@ -2,6 +2,8 @@
 
 A small Haskell game
 
+![Gameplay](docs/gameplay.png)
+
 # Gameplay
 
 WASD - Move
